@@ -6,7 +6,7 @@
 yt config
 ```
 
-This will open your favorite text editor and except one channel link per line.
+This will open your favorite text editor and expect one channel link per line.
 
 ### Sync
 
