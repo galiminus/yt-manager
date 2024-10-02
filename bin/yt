@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+
+require "dry/cli"
+
+require_relative "../lib/yt-manager/config"
+require_relative "../lib/yt-manager/sync"
+
+CHANNELS_FILE_PATH = File.join(Dir.home, '.config', 'yt-manager-channels')
+
+def load_channels
+  if File.exist?(CHANNELS_FILE_PATH)
+    File.readlines(CHANNELS_FILE_PATH).map(&:strip)
+  else
+    []
+  end
+end
+
+module YtManager
+  module Commands
+    extend Dry::CLI::Registry
+
+    class Config < Dry::CLI::Command
+      desc "Configure channels"
+
+      def call(**)
+        YtManager::Config.new(path: CHANNELS_FILE_PATH).run
+      end
+    end
+
+    class Sync < Dry::CLI::Command
+      desc "Sync videos"
+
+      option :output_dir, type: :string, default: File.join(Dir.home, 'Videos', 'YouTube')
+      option :since_days_ago, type: :integer, default: 7
+
+      def call(output_dir:, since_days_ago:, **)
+        YtManager::Sync.new(channels: load_channels, output_dir: output_dir, since_days_ago: since_days_ago).run
+      end
+    end
+
+    register "config", Config
+    register "sync", Sync
+  end
+end
+
+Dry::CLI.new(YtManager::Commands).call
